@@ -88,6 +88,7 @@ class SKTagger:
         """
         register_heif_opener()
         self.transform = get_transform(image_size=image_size)
+        cuda_available = torch.cuda.is_available()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"STAG using device: {self.device}")
         
@@ -103,22 +104,54 @@ class SKTagger:
         self.tag_prefix = tag_prefix
 
 
-    def get_tags_for_image(self, pil_image: Image.Image) -> str:
+    def _run_inference(self, pil_image: Image.Image, result_container: list) -> None:
         """
-        Generate tags for a given PIL image
+        Helper method to run inference in a separate thread
         
         Args:
             pil_image: PIL Image object
-            
-        Returns:
-            String containing tags separated by '|'
+            result_container: List to store the result (modified in place)
         """
         try:
             torch_image = self.transform(pil_image).unsqueeze(0).to(self.device)
             res = inference(torch_image, self.model)
-            return res[0]
+            result_container.append(res[0])
         except Exception as e:
-            print(f"Tagging failed: {e}")
+            print(f"Inference error: {e}")
+            import traceback
+            traceback.print_exc()
+            result_container.append("")
+
+    def get_tags_for_image(self, pil_image: Image.Image, timeout: int = 60) -> str:
+        """
+        Generate tags for a given PIL image with timeout protection
+        
+        Args:
+            pil_image: PIL Image object
+            timeout: Maximum seconds to wait for inference (default: 60)
+            
+        Returns:
+            String containing tags separated by '|'
+        """
+        result_container = []
+        inference_thread = threading.Thread(
+            target=self._run_inference,
+            args=(pil_image, result_container)
+        )
+        
+        inference_thread.daemon = True
+        inference_thread.start()
+        inference_thread.join(timeout=timeout)
+        
+        if inference_thread.is_alive():
+            print(f"WARNING: Image processing timed out after {timeout} seconds")
+            print("This image may be corrupted or too complex for processing")
+            return ""
+        
+        if result_container:
+            return result_container[0]
+        else:
+            print("ERROR: Inference failed to produce results")
             return ""
 
     def get_tags_for_image_at_path(self, path: str) -> str:
@@ -264,15 +297,26 @@ class SKTagger:
                 image, loader = self.load_image(image_file)
                 
                 if image is not None:
-                    print(f'Looking at {image_file} loaded with {loader}:')
-                    
-                    # Generate and process tags
-                    tag_string = self.get_tags_for_image(image)
-                    tags = [item.strip() for item in tag_string.split("|")]
-                    print(f"Tags found: {tags}")
-                    
-                    # Save tags to XMP
-                    self.save_tags(image_file, sidecar_files, tags)
+                    try:
+                        print(f'Looking at {image_file} loaded with {loader}:')
+                        
+                        # Generate and process tags
+                        tag_string = self.get_tags_for_image(image)
+                        tags = [item.strip() for item in tag_string.split("|")]
+                        print(f"Tags found: {tags}")
+                        
+                        # Save tags to XMP
+                        self.save_tags(image_file, sidecar_files, tags)
+                    except Exception as e:
+                        print(f"Error processing {image_file}: {e}")
+                        import traceback
+                        traceback.print_exc()
+                    finally:
+                        # Always close the image to free memory
+                        try:
+                            image.close()
+                        except:
+                            pass
 
 
 def main():

@@ -1,9 +1,11 @@
 ram @ git+https://github.com/xinyu1205/recognize-anything.git@88c2b0ca13e38cca6655f83ad0185271167dbcbf
 beautifulsoup4==4.12.3
+fastapi==0.115.6
 huggingface==0.0.1
 huggingface-hub==0.26.0
 lxml==5.3.0
 pillow==11.0.0
+uvicorn==0.32.1
 pillow_heif==0.20.0
 rawpy>=0.23.1
 pyinstaller==6.12.0

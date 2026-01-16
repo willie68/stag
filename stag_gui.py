@@ -19,6 +19,7 @@ from huggingface_hub import hf_hub_download
 from tktooltip import ToolTip
 
 from stag import SKTagger, VERSION
+from config import MODEL_REPO_ID, MODEL_FILENAME, DEFAULT_PREFIX, IMAGE_SIZE
 
 
 class TextRedirector:
@@ -50,9 +51,7 @@ class StagGUI:
     """Main GUI class for the STAG application."""
     
     # Version is imported from stag module
-    DEFAULT_PREFIX = "st"
-    MODEL_REPO_ID = "xinyu1205/recognize-anything-plus-model"
-    MODEL_FILENAME = "ram_plus_swin_large_14m.pth"
+    # Configuration imported from config module
     
     def __init__(self, root):
         """
@@ -149,7 +148,7 @@ class StagGUI:
         )
         self.entry_prefix = ttk.Entry(self.root, width=50)
         self.entry_prefix.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-        self.entry_prefix.insert(0, self.DEFAULT_PREFIX)
+        self.entry_prefix.insert(0, DEFAULT_PREFIX)
     
     def create_checkboxes(self):
         """Create checkbox options."""
@@ -291,13 +290,13 @@ class StagGUI:
 
         try:
             pretrained = hf_hub_download(
-                repo_id=self.MODEL_REPO_ID, 
-                filename=self.MODEL_FILENAME
+                repo_id=MODEL_REPO_ID, 
+                filename=MODEL_FILENAME
             )
 
             tagger = SKTagger(
                 pretrained, 
-                384,  # Image size parameter
+                IMAGE_SIZE,
                 force, 
                 test, 
                 prefer_exact_filenames, 

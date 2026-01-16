@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STAG Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/server.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--host", "127.0.0.1",
+                "--port", "8000"
+            ],
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            }
+        },
+        {
+            "name": "STAG Server (with reload)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/server.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--host", "127.0.0.1",
+                "--port", "8000",
+                "--reload"
+            ],
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            }
+        },
+        {
+            "name": "STAG GUI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/stag_gui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            }
+        },
+        {
+            "name": "STAG CLI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/stag.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "./test_images"
+            ],
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            }
+        }
+    ]
+}

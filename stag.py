@@ -90,7 +90,10 @@ class SKTagger:
         self.transform = get_transform(image_size=image_size)
         cuda_available = torch.cuda.is_available()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(f"STAG using device: {self.device}")
+        if self.device.type == 'cuda':
+            print(f"Modell läuft auf GPU (Device: {self.device})")
+        else:
+            print(f"Modell läuft auf CPU (Device: {self.device})")
         
         # Load and prepare model
         self.model = ram_plus(pretrained=model_path, image_size=image_size, vit='swin_l')
